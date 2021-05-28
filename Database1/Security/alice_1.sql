@@ -1,0 +1,3 @@
+﻿CREATE LOGIN [alice]
+    WITH PASSWORD = N'l^zusak7lx|;rYdFOVepga{vmsFT7_&#$!~<zb:cEia{q1Xa', SID = 0xB537DA3A18DC404EB79EFD0F00C7C5FD, DEFAULT_DATABASE = [BackgroundServiceTest], DEFAULT_LANGUAGE = [us_english], CHECK_POLICY = OFF;
+
