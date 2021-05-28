@@ -1,0 +1,13 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<p>Connection string is @Model.ConnectionString</p>
+
+@foreach (var t in Model?.BackgroundTasks)
+{
+    <p>@t.BackgroundTaskId, @t.Name, @t.LastRunDateTime, @t.FrequencyInMinutes</p>
+}
+
