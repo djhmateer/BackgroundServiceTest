@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using System;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace WebApplication8.Pages
 
         public string? ConnectionString { get; set; }
         public List<BackgroundTask?> BackgroundTasks { get; set; } = null!;   
+        public DateTime Now { get; set; }
 
 
         public async Task OnGet()
@@ -24,6 +26,8 @@ namespace WebApplication8.Pages
 
             var result = await Db.GetAllBackgroundTasks(connectionString);
             BackgroundTasks = result;
+
+            Now = DateTime.Now;
         }
     }
 }
