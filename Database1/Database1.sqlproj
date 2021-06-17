@@ -68,4 +68,7 @@
     <Build Include="Security\alice_1.sql" />
     <Build Include="Security\RoleMemberships.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="LocalDbToProject.scmp" />
+  </ItemGroup>
 </Project>

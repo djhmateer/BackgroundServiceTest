@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace WebApplication8.BackgroundServices
+namespace BackgroundServiceTest.BackgroundServices
 {
     public class TestService : BackgroundService
     {
@@ -18,52 +18,50 @@ namespace WebApplication8.BackgroundServices
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    // Do we need to run BudgetAlert
-                    // lets assume it needs to run once every day
-                    //  and we start trying at a certain time.
+                    //{
+                    //    // Task1 - Budget Alert
+                    //    // want it to run once per day at 0950 
+                    //    var taskId = 1;
+                    //    var (lastRunEnd, runEveryDayAfter) = await Db.GetTaskById(connectionString, taskId);
 
-                    // if webserver is down, it will pick up where left off, and try and do only 1 run
+                    //    var today = DateTime.Now.Date;
 
+                    //    // has the task run today already?
+                    //    if (lastRunEnd.Date == today) { }
+                    //    else
+                    //    {
+                    //        var todayWhenToRunTaskAfter = new DateTime(today.Year, today.Month, today.Day,
+                    //            runEveryDayAfter.Hour, runEveryDayAfter.Minute, runEveryDayAfter.Second);
 
-                    // testing task1
-                    // want it to run once every 5 minutes starting immediately
-                    // starting at 1330
-                    var (lastRunStart, lastRunEnd) = await Db.GetBudgetAlert(connectionString);
+                    //        // have we gone past the time when it should run today?
+                    //        bool shouldRun = DateTime.Now > todayWhenToRunTaskAfter;
 
-                    bool shouldRun = false;
-                    var frequencyInSeconds = 10;
+                    //        if (shouldRun)
+                    //        {
+                    //            await Db.UpdateTaskLastRunStartAndStatusIdToRunning(connectionString, taskId);
+                    //            var success = await Foo.Task1(stoppingToken);
 
-                    // happy path
-                    if (DateTime.Now > lastRunEnd.AddSeconds(frequencyInSeconds)) shouldRun = true;
+                    //            await Db.UpdateTaskLastRunEndAndStatusIdToCompletedOrException(connectionString, taskId, success);
+                    //        }
+                    //    }
+                    //}
 
-                    if (shouldRun)
                     {
-                        Log.Information("Start task 1");
-                        await Db.UpdateBudgetAlertLastRunStart(connectionString);
-                        //await Task.Delay(10000, stoppingToken); // doing work, maybe sending emails
-                        await Foo.Bar(stoppingToken);
+                        // Task 2 - continuous every 1 minute
+                        var taskId = 2;
+                        var (lastRunEnd, _) = await Db.GetTaskById(connectionString, taskId);
 
-                        Log.Information("End task 1");
-                        await Db.UpdateBudgetAlertLastRunEnd(connectionString);
-                    }
+                        var frequencyInSeconds = 60;
 
-                    // testing task2
-                    // **HERE** maybe we want this to start at 14:45:00 and run every minute at 00 seconds
-                    var (_, lastRunEndB) = await Db.GetBudgetAlertB(connectionString);
+                        bool shouldRun = DateTime.Now > lastRunEnd.AddSeconds(frequencyInSeconds);
 
-                    bool shouldRunB = false;
-                    var frequencyInSecondsB = 10;
+                        if (shouldRun)
+                        {
+                            await Db.UpdateTaskLastRunStartAndStatusIdToRunning(connectionString, taskId);
+                            var success = await Foo.Task2(stoppingToken);
 
-                    if (DateTime.Now > lastRunEndB.AddSeconds(frequencyInSecondsB)) shouldRunB = true;
-
-                    if (shouldRunB)
-                    {
-                        Log.Information("Start task 2");
-                        await Db.UpdateBudgetAlertLastRunStartB(connectionString);
-                        await Foo.BarB(stoppingToken);
-
-                        Log.Information("End task 2");
-                        await Db.UpdateBudgetAlertLastRunEndB(connectionString);
+                            await Db.UpdateTaskLastRunEndAndStatusIdToCompletedOrException(connectionString, taskId, success);
+                        }
                     }
 
                     Log.Information("ping");
@@ -84,32 +82,38 @@ namespace WebApplication8.BackgroundServices
 
     public static class Foo
     {
-        public static async Task Bar(CancellationToken stoppingToken)
+        public static async Task<bool> Task1(CancellationToken stoppingToken)
         {
             try
             {
+                Log.Information("Start task 1");
                 await Task.Delay(5000, stoppingToken);
-                throw new ApplicationException("blow up - our system should be able to handle this and retry");
-                //throw new InvalidOperationException("Operation is not valid due to Bar being in a bad state");
+                Log.Information("End task 1");
+                //throw new ApplicationException("blow up - our system should be able to handle this and retry");
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Bar task threw an exception, but we want it to retry the next time it is due to run");
+                Log.Warning(ex, "Task1 task threw an exception, but we want it to retry the next time it is due to run");
+                return false;
             }
+            return true;
         }
 
-        public static async Task BarB(CancellationToken stoppingToken)
+        public static async Task<bool> Task2(CancellationToken stoppingToken)
         {
             try
             {
+                Log.Information("Start task 2");
                 await Task.Delay(5000, stoppingToken);
-                throw new ApplicationException("blow upB - our system should be able to handle this and retry");
-                //throw new InvalidOperationException("Operation is not valid due to Bar being in a bad state");
+                Log.Information("End task 2");
+                //throw new ApplicationException("blow upB - our system should be able to handle this and retry");
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "BarB task threw an exception, but we want it to retry the next time it is due to run");
+                Log.Warning(ex, "Task2 task threw an exception, but we want it to retry the next time it is due to run");
+                return false;
             }
+            return true;
         }
     }
 }

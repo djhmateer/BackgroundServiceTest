@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 
-namespace WebApplication8
+namespace BackgroundServiceTest
 {
     public static class Db
     {
@@ -18,82 +18,60 @@ namespace WebApplication8
             return cnn;
         }
 
-        public static async Task<(DateTime lastRunStart, DateTime lastRunEnd)> GetBudgetAlert(string connectionString)
+        public static async Task<(DateTime lastRunEnd, DateTime runEveryDayAfter)> GetTaskById(string connectionString, int taskId)
         {
             using var conn = GetOpenConnection(connectionString);
 
             var result = await conn.QueryAsync<(DateTime, DateTime)>(@"
-                select LastRunStart, LastRunEnd
+                select LastRunEnd, CONVERT(DATETIME, RunEveryDayAfter) as RunEveryDayAfter
                 from BackgroundTask
-                where BackgroundTaskId = 1 
-                ");
+                where BackgroundTaskId = @TaskId
+                ", new { taskId });
 
+            // 01-01-1900 if RunEveryDayAfter DateTime date part
+            // C# getting a time only representation in C#10
             return result.Single();
         }
 
-        public static async Task UpdateBudgetAlertLastRunStart(string connectionString)
+        public static async Task UpdateTaskLastRunStartAndStatusIdToRunning(string connectionString, int taskId)
         {
             using var conn = GetOpenConnection(connectionString);
+
+            var taskStatusRunning = TaskStatus.Running;
 
             await conn.ExecuteAsync(@"
                 update BackgroundTask
-                set LastRunStart = @LastRunStart
-                where BackgroundTaskId = 1 
-                ", new { lastRunStart = DateTime.Now });
+                set LastRunStart = @LastRunStart,
+                    LastStatusId = @TaskStatusRunning
+                where BackgroundTaskId = @TaskID
+                ", new { lastRunStart = DateTime.Now, taskId, taskStatusRunning });
         }
 
 
-        public static async Task UpdateBudgetAlertLastRunEnd(string connectionString)
+        public static async Task UpdateTaskLastRunEndAndStatusIdToCompletedOrException(string connectionString, int taskId, bool success)
         {
             using var conn = GetOpenConnection(connectionString);
+
+            var taskStatus = success ? TaskStatus.Completed : TaskStatus.Error;
 
             await conn.ExecuteAsync(@"
                 update BackgroundTask
-                set LastRunEnd = @LastRunEnd
-                where BackgroundTaskId = 1 
-                ", new { lastRunEnd = DateTime.Now });
+                set LastRunEnd = @LastRunEnd,
+                    LastStatusId = @TaskStatus
+                where BackgroundTaskId = @TaskId
+                ", new { lastRunEnd = DateTime.Now, taskId, taskStatus });
         }
 
-
-
-
-        public static async Task<(DateTime lastRunStart, DateTime lastRunEnd)> GetBudgetAlertB(string connectionString)
+        public static class TaskStatus
         {
-            using var conn = GetOpenConnection(connectionString);
-
-            var result = await conn.QueryAsync<(DateTime, DateTime)>(@"
-                select LastRunStart, LastRunEnd
-                from BackgroundTask
-                where BackgroundTaskId = 2 
-                ");
-
-            return result.Single();
-        }
-
-        public static async Task UpdateBudgetAlertLastRunStartB(string connectionString)
-        {
-            using var conn = GetOpenConnection(connectionString);
-
-            await conn.ExecuteAsync(@"
-                update BackgroundTask
-                set LastRunStart = @LastRunStart
-                where BackgroundTaskId = 2 
-                ", new { lastRunStart = DateTime.Now });
+            public const int NeverRan = 1;
+            public const int Running = 2;
+            public const int Completed = 3;
+            public const int Error = 9;
         }
 
 
-        public static async Task UpdateBudgetAlertLastRunEndB(string connectionString)
-        {
-            using var conn = GetOpenConnection(connectionString);
-
-            await conn.ExecuteAsync(@"
-                update BackgroundTask
-                set LastRunEnd = @LastRunEnd
-                where BackgroundTaskId = 2 
-                ", new { lastRunEnd = DateTime.Now });
-        }
-
-
+                
 
         public static async Task<List<BackgroundTask?>> GetAllBackgroundTasks(string connectionString)
         {
