@@ -28,7 +28,7 @@ namespace WebApplication8
             try
             {
                 Log.Information("");
-                Log.Information("Starting up BLC.Website (Program.cs)");
+                Log.Information("Starting up BackgroundServiceTest (Program.cs)");
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
