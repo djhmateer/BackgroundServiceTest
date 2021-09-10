@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BackgroundServiceTest;
+using BackgroundServiceTest.BackgroundServices;
 
 namespace WebApplication8.Pages
 {
     public class IndexModel : PageModel
     {
+        private readonly Test2Channel _test2Channel;
         //private readonly ILogger<IndexModel> _logger;
 
         //public IndexModel(ILogger<IndexModel> logger)
@@ -19,16 +21,23 @@ namespace WebApplication8.Pages
         public List<BackgroundTask?> BackgroundTasks { get; set; } = null!;   
         public DateTime Now { get; set; }
 
+        public IndexModel(Test2Channel test2Channel)
+        {
+            _test2Channel = test2Channel;
+        }
 
         public async Task OnGet()
         {
-            var connectionString = AppConfiguration.LoadFromEnvironment().ConnectionString;
-            ConnectionString = connectionString;
+            var filename = DateTime.Now.ToLongTimeString();
+            await _test2Channel.AddFileAsync(filename);
 
-            var result = await Db.GetAllBackgroundTasks(connectionString);
-            BackgroundTasks = result;
+            //var connectionString = AppConfiguration.LoadFromEnvironment().ConnectionString;
+            //ConnectionString = connectionString;
 
-            Now = DateTime.Now;
+            //var result = await Db.GetAllBackgroundTasks(connectionString);
+            //BackgroundTasks = result;
+
+            //Now = DateTime.Now;
         }
     }
 }

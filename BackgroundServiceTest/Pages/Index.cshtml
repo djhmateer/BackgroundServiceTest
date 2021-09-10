@@ -4,12 +4,14 @@
     ViewData["Title"] = "Home page";
 }
 
-<p>Connection string is @Model.ConnectionString</p>
+@*<p>Connection string is @Model.ConnectionString</p>
 
 <p>Time is @Model.Now </p>
 
 @foreach (var t in Model?.BackgroundTasks)
 {
     <p>@t.BackgroundTaskId, @t.Name, @t.LastRunStart, @t.LastRunEnd</p>
-}
+}*@
+
+<p>Add stuff to Channel</p>
 

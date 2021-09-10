@@ -22,7 +22,10 @@ namespace WebApplication8
         {
             services.AddRazorPages();
 
-            services.AddHostedService<TestService>();
+            //services.AddHostedService<TestService>();
+
+            services.AddSingleton<Test2Channel>();
+            services.AddHostedService<Test2Service>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
